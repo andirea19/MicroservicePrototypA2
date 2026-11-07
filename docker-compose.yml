@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  # 1. Microservice: Frontend (User Interface)
+  frontend:
+    build: ./frontend
+    ports:
+      - "8000:8000"
+    environment:
+      - PET_SERVICE_URL=http://pet-service:8000
+      - CALENDAR_SERVICE_URL=http://calendar-service:8000
+      - PET_API_SERVICE_URL=http://pet-api-service:8000
+    depends_on:
+      - pet-service
+      - calendar-service
+      - pet-api-service
+
+  # 2. Microservice: Haustiere & Wunschlisten Backend
+  pet-service:
+    build: ./pet-service
+    ports:
+      - "8001:8000"
+
+  # 3. Microservice: Kalender & Geburtstage
+  calendar-service:
+    build: ./calendar-service
+    ports:
+      - "8002:8000"
+
+  # 4. Microservice: Externe API & Produktempfehlungen
+  pet-api-service:
+    build: ./pet-api-service
+    ports:
+      - "8003:8000"
