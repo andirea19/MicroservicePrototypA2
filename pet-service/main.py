@@ -4,17 +4,16 @@ from typing import List, Optional
 
 app = FastAPI(title="Pet & Wishlist Backend Service")
 
-# Data Models (Pydantic für Datenvalidierung)
 class WishlistItem(BaseModel):
     id: int
     item_name: str
-    category: str  # z. B. "Snack", "Spielzeug", "Futter"
+    category: str
     status: str = "offen"  # "offen" oder "gekauft"
 
 class Pet(BaseModel):
     id: int
     name: str
-    species: str  # z. B. "Hund", "Katze"
+    species: str
     breed: str
     allergies: List[str] = []
     wishlist: List[WishlistItem] = []
@@ -25,7 +24,11 @@ class PetCreate(BaseModel):
     breed: str
     allergies: Optional[List[str]] = []
 
-# In-Memory Daten (simulierte Datenbank)
+class WishlistCreate(BaseModel):
+    item_name: str
+    category: str
+
+# In-Memory Datenbank
 pets_db = [
     {
         "id": 1,
@@ -52,16 +55,7 @@ pets_db = [
 
 @app.get("/pets", response_model=List[Pet])
 async def get_all_pets():
-    """Gibt alle Haustiere samt Allergien und Wunschlisten zurück."""
     return pets_db
-
-@app.get("/pets/{pet_id}", response_model=Pet)
-async def get_pet(pet_id: int):
-    """Holt ein einzelnes Haustier über seine ID."""
-    for pet in pets_db:
-        if pet["id"] == pet_id:
-            return pet
-    raise HTTPException(status_code=404, detail="Haustier nicht gefunden")
 
 @app.post("/pets", response_model=Pet, status_code=status.HTTP_201_CREATED)
 async def create_pet(pet: PetCreate):
@@ -78,18 +72,30 @@ async def create_pet(pet: PetCreate):
     pets_db.append(new_pet)
     return new_pet
 
-@app.post("/pets/{pet_id}/wishlist", response_model=WishlistItem)
-async def add_wishlist_item(pet_id: int, item_name: str, category: str):
-    """Fügt einem Haustier ein neues Wunschlisten-Item hinzu."""
+@app.post("/pets/{pet_id}/wishlist", response_model=WishlistItem, status_code=status.HTTP_201_CREATED)
+async def add_wishlist_item(pet_id: int, item: WishlistCreate):
+    """Fügt der Wunschliste eines Tieres ein Geschenk hinzu."""
     for pet in pets_db:
         if pet["id"] == pet_id:
-            new_item_id = len(pet["wishlist"]) + 100
+            new_item_id = max([w["id"] for w in pet["wishlist"]], default=pet_id * 100) + 1
             new_item = {
                 "id": new_item_id,
-                "item_name": item_name,
-                "category": category,
+                "item_name": item.item_name,
+                "category": item.category,
                 "status": "offen"
             }
             pet["wishlist"].append(new_item)
             return new_item
+    raise HTTPException(status_code=404, detail="Haustier nicht gefunden")
+
+@app.patch("/pets/{pet_id}/wishlist/{item_id}/buy", response_model=WishlistItem)
+async def mark_wishlist_item_as_bought(pet_id: int, item_id: int):
+    """Markiert ein Wunschlisten-Geschenk als 'gekauft'."""
+    for pet in pets_db:
+        if pet["id"] == pet_id:
+            for item in pet["wishlist"]:
+                if item["id"] == item_id:
+                    item["status"] = "gekauft"
+                    return item
+            raise HTTPException(status_code=404, detail="Wunschlisten-Eintrag nicht gefunden")
     raise HTTPException(status_code=404, detail="Haustier nicht gefunden")
