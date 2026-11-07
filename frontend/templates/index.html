@@ -2,64 +2,101 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>TOP NAME HIER IDK</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PetCare Hub - Dashboard</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f4f4f9; }
-        .card { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .badge { background-color: #ff6b6b; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; }
-        .species { background-color: #4ecdc4; color: white; padding: 3px 6px; border-radius: 4px; font-size: 12px; }
-        img.pet-img { max-width: 250px; border-radius: 8px; display: block; margin-top: 10px; }
+        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f8f9fa; color: #333; }
+        h1, h2, h3 { color: #0d6efd; }
+        .card { background: white; padding: 20px; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .badge { background: #e9ecef; padding: 3px 8px; border-radius: 4px; font-size: 0.9em; margin-right: 5px; }
+        .badge-allergy { background: #f8d7da; color: #842029; }
+        .badge-bought { background: #d1e7dd; color: #0f5132; }
+        button { background-color: #28a745; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        button:hover { background-color: #218838; }
+        img { max-width: 300px; border-radius: 8px; display: block; margin-top: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        ul { padding-left: 20px; }
+        li { margin-bottom: 8px; }
     </style>
 </head>
 <body>
-    <h1>🐾 PetCare Hub - Geburtstage, Allergien & Wunschlisten</h1>
+    <h1>🐾 PetCare Hub</h1>
+    <p>Zentrales Dashboard für Haustiere, Wunschlisten, Geburtstage und Inspiration.</p>
 
+    <!-- Externe API / Bild Sektion -->
     <div class="card">
-        <h2>Zufälliges Tierbild des Tages</h2>
-        {% if random_pet_img %}
-            <img src="{{ random_pet_img }}" alt="Haustier" class="pet-img">
+        <h2>Tages-Inspiration (Pet API Service)</h2>
+        {% if image_url %}
+            <img src="{{ image_url }}" alt="Zufälliges Tierbild">
         {% else %}
-            <p><em>Pet-API-Service ist aktuell nicht erreichbar (Fault Tolerance aktiv).</em></p>
+            <p><em>Bild konnte nicht geladen werden (Fallback aktiv).</em></p>
         {% endif %}
     </div>
 
+    <!-- Haustiere & Wunschlisten Sektion -->
     <div class="card">
-        <h2>🗓️ Anstehende Tier-Geburtstage</h2>
-        {% if birthdays %}
-            <ul>
-            {% for b in birthdays %}
-                <li><strong>{{ b.name }}</strong> ({{ b.species }}) am {{ b.date }} - wird {{ b.age }} Jahre alt!</li>
-            {% endfor %}
-            </ul>
-        {% else %}
-            <p><em>Keine Geburtsdaten verfügbar oder Kalender-Service offline.</em></p>
-        {% endif %}
-    </div>
-
-    <div class="card">
-        <h2>🦴 Registrierte Haustiere & Wunschlisten</h2>
+        <h2>Registrierte Haustiere & Wunschlisten</h2>
         {% if pets %}
             {% for pet in pets %}
-                <h3>{{ pet.name }} <span class="species">{{ pet.species }} / {{ pet.breed }}</span></h3>
-                <p><strong>Unverträglichkeiten / Allergien:</strong> 
-                    {% if pet.allergies %}
-                        {% for allergy in pet.allergies %}
-                            <span class="badge">{{ allergy }}</span>
-                        {% endfor %}
+                <div style="border-bottom: 1px solid #dee2e6; padding-bottom: 15px; margin-bottom: 15px;">
+                    <h3>{{ pet.name }} <small style="font-weight: normal; color: #6c757d;">({{ pet.species }} - {{ pet.breed }})</small></h3>
+                    
+                    <p><strong>Allergien / Unverträglichkeiten:</strong> 
+                        {% if pet.allergies %}
+                            {% for allergy in pet.allergies %}
+                                <span class="badge badge-allergy">{{ allergy }}</span>
+                            {% endfor %}
+                        {% else %}
+                            <span style="color: green;">Keine bekannt</span>
+                        {% endif %}
+                    </p>
+                    
+                    <h4>Wunschliste:</h4>
+                    {% if pet.wishlist %}
+                        <ul>
+                            {% for item in pet.wishlist %}
+                                <li>
+                                    <strong>{{ item.item_name }}</strong> ({{ item.category }}) — 
+                                    {% if item.status == "gekauft" %}
+                                        <span class="badge badge-bought">Status: gekauft</span>
+                                    {% else %}
+                                        <span class="badge">Status: offen</span>
+                                        <button class="buy-btn" data-pet-id="{{ pet.id }}" data-item-id="{{ item.id }}" style="margin-left: 10px;">
+                                            Als gekauft markieren
+                                        </button>
+                                    {% endif %}
+                                </li>
+                            {% endfor %}
+                        </ul>
                     {% else %}
-                        Keine bekannten Allergien
+                        <p><em>Keine Wünsche auf der Liste.</em></p>
                     {% endif %}
-                </p>
-                <h4>Wunschliste & Snacks:</h4>
-                <ul>
-                {% for item in pet.wishlist %}
-                    <li>{{ item.item_name }} - Status: <em>{{ item.status }}</em></li>
-                {% endfor %}
-                </ul>
+                </div>
             {% endfor %}
         {% else %}
-            <p><em>Keine Tierdaten vorhanden oder Backend-Service nicht erreichbar.</em></p>
+            <p>Keine Haustiere gefunden oder Pet-Service ist nicht erreichbar.</p>
         {% endif %}
     </div>
+
+    <script>
+    document.addEventListener('click', async function(event) {
+        if (event.target && event.target.classList.contains('buy-btn')) {
+            const petId = event.target.getAttribute('data-pet-id');
+            const itemId = event.target.getAttribute('data-item-id');
+            try {
+                let response = await fetch(`/pets/${petId}/wishlist/${itemId}/buy`, {
+                    method: 'POST'
+                });
+                if (response.ok) {
+                    location.reload();
+                } else {
+                    alert("Fehler beim Markieren des Geschenks.");
+                }
+            } catch (error) {
+                console.error("Netzwerkfehler:", error);
+                alert("Verbindungsfehler zum Server.");
+            }
+        }
+    });
+    </script>
 </body>
 </html>
