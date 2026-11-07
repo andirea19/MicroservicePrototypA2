@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>TOP NAME HIER IDK</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f4f4f9; }
+        .card { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .badge { background-color: #ff6b6b; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; }
+        .species { background-color: #4ecdc4; color: white; padding: 3px 6px; border-radius: 4px; font-size: 12px; }
+        img.pet-img { max-width: 250px; border-radius: 8px; display: block; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <h1>🐾 PetCare Hub - Geburtstage, Allergien & Wunschlisten</h1>
+
+    <div class="card">
+        <h2>Zufälliges Tierbild des Tages</h2>
+        {% if random_pet_img %}
+            <img src="{{ random_pet_img }}" alt="Haustier" class="pet-img">
+        {% else %}
+            <p><em>Pet-API-Service ist aktuell nicht erreichbar (Fault Tolerance aktiv).</em></p>
+        {% endif %}
+    </div>
+
+    <div class="card">
+        <h2>🗓️ Anstehende Tier-Geburtstage</h2>
+        {% if birthdays %}
+            <ul>
+            {% for b in birthdays %}
+                <li><strong>{{ b.name }}</strong> ({{ b.species }}) am {{ b.date }} - wird {{ b.age }} Jahre alt!</li>
+            {% endfor %}
+            </ul>
+        {% else %}
+            <p><em>Keine Geburtsdaten verfügbar oder Kalender-Service offline.</em></p>
+        {% endif %}
+    </div>
+
+    <div class="card">
+        <h2>🦴 Registrierte Haustiere & Wunschlisten</h2>
+        {% if pets %}
+            {% for pet in pets %}
+                <h3>{{ pet.name }} <span class="species">{{ pet.species }} / {{ pet.breed }}</span></h3>
+                <p><strong>Unverträglichkeiten / Allergien:</strong> 
+                    {% if pet.allergies %}
+                        {% for allergy in pet.allergies %}
+                            <span class="badge">{{ allergy }}</span>
+                        {% endfor %}
+                    {% else %}
+                        Keine bekannten Allergien
+                    {% endif %}
+                </p>
+                <h4>Wunschliste & Snacks:</h4>
+                <ul>
+                {% for item in pet.wishlist %}
+                    <li>{{ item.item_name }} - Status: <em>{{ item.status }}</em></li>
+                {% endfor %}
+                </ul>
+            {% endfor %}
+        {% else %}
+            <p><em>Keine Tierdaten vorhanden oder Backend-Service nicht erreichbar.</em></p>
+        {% endif %}
+    </div>
+</body>
+</html>
