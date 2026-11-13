@@ -30,28 +30,3 @@ graph TD
 ## Datenflussdiagramm (Sequence Diagram)
 Das folgende Sequenzdiagramm veranschaulicht den parallelen und fehlertoleranten Datenabruf beim Aufruf der Startseite:
 
-```mermaid
-sequenceDiagram
-    actor User as Anwender
-    participant FE as Frontend Service
-    participant PS as Pet-Service
-    participant CS as Calendar-Service
-    participant AS as Pet-API-Service
-
-    User->>FE: Ruft Startseite auf (GET /)
-    activate FE
-    
-    par Parallele & Fehlertolerante Abfragen
-        FE->>PS: GET /pets (Haustiere & Wunschlisten)
-        PS-->>FE: JSON (Daten & Allergien)
-    and
-        FE->>CS: GET /birthdays (Geburtstage)
-        CS-->>FE: JSON (Termine)
-    and
-        FE->>AS: GET /random-image (Tierbild)
-        AS-->>FE: JSON (Bild-URL / Fallback)
-    end
-
-    FE->>FE: Aggregiert Daten & wendet Fallbacks an
-    FE-->>User: Liefert HTML-Renderseite (Jinja2)
-    deactivate FE

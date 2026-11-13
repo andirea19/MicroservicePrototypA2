@@ -13,8 +13,6 @@ def test_get_pets():
 def test_create_pet():
     response = client.post("/pets", json={
         "name": "Charlie",
-        "species": "Hund",
-        "breed": "Beagle",
         "allergies": ["Getreide"]
     })
     assert response.status_code == 201

@@ -2,19 +2,21 @@ from fastapi import FastAPI, HTTPException, status
 from pydantic import BaseModel
 from typing import List, Optional
 
+# inspiriert von einer Amazon Wunschliste (und dem 13. Geburtstag von meinem Stinkehund)
+
 app = FastAPI(title="Pet & Wishlist Backend Service")
 
 class WishlistItem(BaseModel):
     id: int
     item_name: str
     category: str
-    status: str = "offen"  # "offen" oder "gekauft"
+    status: str = "offen"  # "offen" oder "gekauft" als möglicher Status der Wishlist
 
 class Pet(BaseModel):
     id: int
     name: str
     species: str
-    breed: str
+    breed: str # muss noch schauen, ob und wie wird das umsetzen
     allergies: List[str] = []
     wishlist: List[WishlistItem] = []
 
@@ -28,7 +30,7 @@ class WishlistCreate(BaseModel):
     item_name: str
     category: str
 
-# In-Memory Datenbank
+# In-Memory Datenbank 
 pets_db = [
     {
         "id": 1,
@@ -49,6 +51,16 @@ pets_db = [
         "allergies": ["Laktose"],
         "wishlist": [
             {"id": 201, "item_name": "Lachs-Snack Pastete", "category": "Snack", "status": "offen"}
+        ]
+    },
+    {
+        "id": 3,
+        "name": "Almi",
+        "species": "Katze",
+        "breed": "Vampirkater",
+        "allergies": ["Rind"],
+        "wishlist": [
+            {"id": 201, "item_name": "Miamor Snack", "category": "Snack", "status": "offen"}
         ]
     }
 ]
